@@ -23,15 +23,15 @@ def job():
     print(f"[autoRed] Job started at {datetime.now()}")
     # 1. Prompt generation
     # prompt = generate_image_prompt()
-    prompt = "a picture of a blue bird"
+    prompt = "a picture of a hot girl"
     print(f"Generated prompt: {prompt}")
     # 2. Image generation (default 3 images)
     images = generate_images(prompt, count=1)
     print(f"Generated {len(images)} images. \nlist: {images}")
     # 3. Post content generation
-    content = generate_post_content(prompt)
-    title = content.get("title", "")
-    copy = content.get("copy", "")
+    # content = generate_post_content(prompt)
+    title = " 颜值暴击！"#content.get("title", "")
+    copy = "是谁家的小仙女下凡啦！🧚‍♀️ 又美又飒，完全是我的理想型没错了！姐妹们，这氛围感真的爱了！" #content.get("copy", "")
     print(f"Title: {title}\nCopy: {copy}")
     # 4. Publish
     run_publish(images, title, copy, headless=False)

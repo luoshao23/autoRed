@@ -51,7 +51,7 @@ class XHSPublisher:
             print("Already logged in via cookies.")
             return
         # Otherwise trigger QR login flow.
-        await self.page.wait_for_selector("text=QR code login", timeout=10000)
+        await self.page.wait_for_selector("text=QR code login", timeout=100000)
         await self.page.click("text=QR code login")
         # Wait for the QR code canvas to appear.
         await self.page.wait_for_selector("canvas", timeout=30000)
@@ -74,6 +74,7 @@ class XHSPublisher:
         # Ensure we are logged in.
         if not await self.page.query_selector("img[alt='User Avatar']"):
             await self.login()
+        print("login succeeded")
 
         # Click the button to create a new post.
         await self.page.wait_for_selector("text=Create Post", timeout=10000)
