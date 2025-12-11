@@ -1,0 +1,14 @@
+name: autoRed
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - google-genai
+    - playwright
+    - apscheduler
+    - python-dotenv
+    - pillow
+    - httpx[socks]
+    - huggingface_hub

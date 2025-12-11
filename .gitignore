@@ -1,0 +1,5 @@
+.env
+output
+cookies
+__pycache__/
+.DS_Store
