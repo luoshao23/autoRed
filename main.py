@@ -14,10 +14,29 @@ from datetime import datetime
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from src.llm_client import generate_image_prompt, generate_post_content
+from src.llm_client import generate_image_prompt, generate_post_content, generate_content_element
 from src.image_client import generate_images
 from src.publisher import run_publish
 from config.settings import SCHEDULE_TIME
+
+
+def job_v2(mode="prod"):
+    print(f"[autoRed] Job started at {datetime.now()}")
+    # 1. Prompt generation
+    content_element = generate_content_element()
+    image_prompt = content_element.get("image_prompt", "")
+    title = content_element.get("title", "")
+    copy = content_element.get("copy", "")
+
+    print(f"Generated prompt: {image_prompt}")
+    print(f"Title: {title}\nCopy: {copy}")
+    # 2. Image generation (default 3 images)
+    images = generate_images(image_prompt, count=1, mode=mode)
+    print(f"Generated {len(images)} images. \nlist: {images}")
+
+    # 3. Publish
+    # run_publish(images, title, copy, headless=False)
+    # print("[autoRed] Job completed.")
 
 def job(mode="prod"):
     print(f"[autoRed] Job started at {datetime.now()}")
@@ -38,15 +57,15 @@ def job(mode="prod"):
     print("[autoRed] Job completed.")
 
 if __name__ == "__main__":
-    mode = os.getenv("MODE", "test")
+    mode = os.getenv("MODE", "dev")
     print(f"[autoRed] Mode: {mode}")
     if mode in ("test", "dev"):
-        job(mode)
+        job_v2(mode)
     elif mode == "daily":
         # Scheduler configuration – run daily at SCHEDULE_TIME (HH:MM)
         hour, minute = map(int, SCHEDULE_TIME.split(":"))
         scheduler = BlockingScheduler()
-        scheduler.add_job(job, "cron", hour=hour, minute=minute, id="autoRed_daily")
+        scheduler.add_job(job_v2, "cron", hour=hour, minute=minute, id="autoRed_daily")
         print(f"[autoRed] Scheduler started – job will run daily at {SCHEDULE_TIME}.")
         try:
             scheduler.start()
