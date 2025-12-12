@@ -23,10 +23,11 @@ from config.settings import SCHEDULE_TIME
 def job_v2(mode="prod"):
     print(f"[autoRed] Job started at {datetime.now()}")
     # 1. Prompt generation
-    content_element = generate_content_element()
+    # content_element = generate_content_element()
+    content_element = {}
     image_prompt = content_element.get("image_prompt", "")
-    title = content_element.get("title", "")
-    copy = content_element.get("copy", "")
+    title = content_element.get("title", "title")
+    copy = content_element.get("copy", "nothing")
 
     print(f"Generated prompt: {image_prompt}")
     print(f"Title: {title}\nCopy: {copy}")
@@ -35,7 +36,7 @@ def job_v2(mode="prod"):
     print(f"Generated {len(images)} images. \nlist: {images}")
 
     # 3. Publish
-    # run_publish(images, title, copy, headless=False)
+    run_publish(images, title, copy, headless=False)
     # print("[autoRed] Job completed.")
 
 def job(mode="prod"):
@@ -57,7 +58,7 @@ def job(mode="prod"):
     print("[autoRed] Job completed.")
 
 if __name__ == "__main__":
-    mode = os.getenv("MODE", "dev")
+    mode = os.getenv("MODE", "test")
     print(f"[autoRed] Mode: {mode}")
     if mode in ("test", "dev"):
         job_v2(mode)

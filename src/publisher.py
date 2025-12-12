@@ -10,9 +10,13 @@ from pathlib import Path
 from typing import List
 
 from playwright.async_api import async_playwright
+from playwright._impl._errors import TimeoutError # 导入TimeoutError
 
 # Path to store cookies for persistent login
 COOKIES_PATH = Path(__file__).parent.parent / "cookies" / "xhs_cookies.json"
+
+
+
 
 class XHSPublisher:
     def __init__(self, headless: bool = True):
@@ -38,6 +42,25 @@ class XHSPublisher:
         COOKIES_PATH.parent.mkdir(parents=True, exist_ok=True)
         COOKIES_PATH.write_text(json.dumps(cookies, ensure_ascii=False, indent=2))
 
+    async def check_login_status(self):
+        # 尝试等待头像元素出现
+        try:
+            # 使用 wait_for_selector 或 page.locator.wait_for()
+            # 注意: page.wait_for_selector 在 Playwright 1.x 版本的 Python 绑定中, 超时会抛出异常
+            await self.page.wait_for_selector("img.user_avatar", timeout=10000)
+            # 如果代码执行到这里，说明找到头像，即已登录
+            print("[autoRed] 已成功登录.")
+            return True
+
+        except TimeoutError:
+            # 如果超时，说明未找到头像，即未登录
+            print("[autoRed] 未检测到用户头像，判断为未登录.")
+            return False
+        except Exception as e:
+            # 捕获其他任何意外错误
+            print(f"[autoRed] 发生其他错误: {e}")
+            return False
+
     async def login(self):
         """Login to Xiaohongshu. If cookies are present they are used, otherwise a QR code is shown.
         The user must scan the QR code within the browser window.
@@ -46,14 +69,18 @@ class XHSPublisher:
         await self._load_cookies()
         await self.page.goto("https://creator.xiaohongshu.com")
         # Check if we are already logged in by looking for the avatar element.
-        if await self.page.wait_for_selector("img.user_avatar", timeout=10000):
+        current_url = self.page.url
+        is_logged_in = await self.check_login_status()
+        # is_logged_in = "/home" in current_url
+        # is_logged_in = await self.page.locator("img.user_avatar").is_visible(timeout=10000)
+        if is_logged_in:
             print("Already logged in via cookies.")
             return
         # Otherwise trigger QR login flow.
         await self.page.wait_for_selector("img", timeout=10000)
         await self.page.click("img")
         # Wait for the QR code canvas to appear.
-        await self.page.wait_for_selector("text=APP扫一扫登录", timeout=30000)
+        await self.page.wait_for_selector("text=APP扫一扫登录", timeout=100000)
         print("Please scan the QR code displayed in the browser window.")
         # Wait until the avatar appears, indicating successful login.
         await self.page.wait_for_selector("img.user_avatar", timeout=120000)
@@ -71,7 +98,11 @@ class XHSPublisher:
         await self._load_cookies()
         await self.page.goto("https://creator.xiaohongshu.com")
         # Ensure we are logged in.
-        if not await self.page.wait_for_selector("img.user_avatar", timeout=10000):
+        current_url = self.page.url
+        is_logged_in = await self.check_login_status()
+        # is_logged_in = "/home" in current_url
+        # is_logged_in = await self.page.locator("img.user_avatar").is_visible(timeout=10000)
+        if not is_logged_in:
             print("not logged in")
             await self.login()
         print("login succeeded")
