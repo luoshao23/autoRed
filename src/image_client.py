@@ -19,7 +19,7 @@ from config.settings import IMAGE_MODEL_NAME
 
 
 
-def generate_images(prompt: str, count: int = 3) -> List[Path]:
+def generate_images(prompt: str, count: int = 3, mode="test") -> List[Path]:
     """Generate `count` images using the Imagen model.
 
     Args:
@@ -32,11 +32,14 @@ def generate_images(prompt: str, count: int = 3) -> List[Path]:
     if count < 1 or count > 6:
         raise ValueError("count must be between 1 and 6")
 
+    if mode == "test":
+        return [Path(__file__).parent.parent / "output" / "images" / "generated.png"]
+
     # client = genai.Client()
-    # client = InferenceClient(
-    #     provider="replicate",
-    #     api_key=os.environ["HF_TOKEN"],
-    # )
+    client = InferenceClient(
+        provider="replicate",
+        api_key=os.environ["HF_TOKEN"],
+    )
     # The Imagen API can generate multiple images in a single request when `candidate_count` is set.
     # response = client.models.generate_images(
     #     model=IMAGE_MODEL_NAME,
@@ -45,16 +48,16 @@ def generate_images(prompt: str, count: int = 3) -> List[Path]:
     #         number_of_images=count,
     #     ),
     # )
-    # image = client.text_to_image(
-    #     prompt,
-    #     model="Tongyi-MAI/Z-Image-Turbo",
-    # )
+    image = client.text_to_image(
+        prompt,
+        model="Tongyi-MAI/Z-Image-Turbo",
+    )
 
     # Save images to a temporary directory within the project
     output_dir = Path(__file__).parent.parent / "output" / "images"
     output_dir.mkdir(parents=True, exist_ok=True)
     saved_paths = []
-    # image.save(output_dir / "generated.png")
+    image.save(output_dir / "generated.png")
     saved_paths.append(output_dir / "generated.png")
     # for idx, img in enumerate(response.candidates):
     #     # Each candidate contains a `image` field with base64 data.

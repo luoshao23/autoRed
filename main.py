@@ -19,32 +19,36 @@ from src.image_client import generate_images
 from src.publisher import run_publish
 from config.settings import SCHEDULE_TIME
 
-def job():
+def job(mode="prod"):
     print(f"[autoRed] Job started at {datetime.now()}")
     # 1. Prompt generation
-    # prompt = generate_image_prompt()
-    prompt = "a picture of a hot girl"
+    prompt = generate_image_prompt()
+    # prompt = "a picture of a hot girl"
     print(f"Generated prompt: {prompt}")
     # 2. Image generation (default 3 images)
-    images = generate_images(prompt, count=1)
+    images = generate_images(prompt, count=1, mode=mode)
     print(f"Generated {len(images)} images. \nlist: {images}")
-    # 3. Post content generation
-    # content = generate_post_content(prompt)
-    title = " 颜值暴击！"#content.get("title", "")
-    copy = "是谁家的小仙女下凡啦！🧚‍♀️ 又美又飒，完全是我的理想型没错了！姐妹们，这氛围感真的爱了！" #content.get("copy", "")
+    # # 3. Post content generation
+    content = generate_post_content(prompt)
+    title = content.get("title", "")
+    copy = content.get("copy", "")
     print(f"Title: {title}\nCopy: {copy}")
-    # 4. Publish
+    # # 4. Publish
     run_publish(images, title, copy, headless=False)
     print("[autoRed] Job completed.")
 
 if __name__ == "__main__":
-    job()
-    # Scheduler configuration – run daily at SCHEDULE_TIME (HH:MM)
-    # hour, minute = map(int, SCHEDULE_TIME.split(":"))
-    # scheduler = BlockingScheduler()
-    # scheduler.add_job(job, "cron", hour=hour, minute=minute, id="autoRed_daily")
-    # print(f"[autoRed] Scheduler started – job will run daily at {SCHEDULE_TIME}.")
-    # try:
-    #     scheduler.start()
-    # except (KeyboardInterrupt, SystemExit):
-    #     print("Scheduler stopped.")
+    mode = os.getenv("MODE", "test")
+    print(f"[autoRed] Mode: {mode}")
+    if mode in ("test", "dev"):
+        job(mode)
+    elif mode == "daily":
+        # Scheduler configuration – run daily at SCHEDULE_TIME (HH:MM)
+        hour, minute = map(int, SCHEDULE_TIME.split(":"))
+        scheduler = BlockingScheduler()
+        scheduler.add_job(job, "cron", hour=hour, minute=minute, id="autoRed_daily")
+        print(f"[autoRed] Scheduler started – job will run daily at {SCHEDULE_TIME}.")
+        try:
+            scheduler.start()
+        except (KeyboardInterrupt, SystemExit):
+            print("Scheduler stopped.")

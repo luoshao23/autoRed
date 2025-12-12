@@ -12,3 +12,5 @@ dependencies:
     - pillow
     - httpx[socks]
     - huggingface_hub
+    - tenacity
+    - openai

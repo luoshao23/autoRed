@@ -3,7 +3,6 @@
 """Module to automate publishing posts to Xiaohongshu using Playwright.
 It handles login (via QR code) and posting images with title and copy.
 """
-
 import os
 import json
 import asyncio
@@ -47,17 +46,17 @@ class XHSPublisher:
         await self._load_cookies()
         await self.page.goto("https://creator.xiaohongshu.com")
         # Check if we are already logged in by looking for the avatar element.
-        if await self.page.query_selector("img[alt='User Avatar']"):
+        if await self.page.wait_for_selector("img.user_avatar", timeout=10000):
             print("Already logged in via cookies.")
             return
         # Otherwise trigger QR login flow.
-        await self.page.wait_for_selector("text=QR code login", timeout=100000)
-        await self.page.click("text=QR code login")
+        await self.page.wait_for_selector("img", timeout=10000)
+        await self.page.click("img")
         # Wait for the QR code canvas to appear.
-        await self.page.wait_for_selector("canvas", timeout=30000)
+        await self.page.wait_for_selector("text=APP扫一扫登录", timeout=30000)
         print("Please scan the QR code displayed in the browser window.")
         # Wait until the avatar appears, indicating successful login.
-        await self.page.wait_for_selector("img[alt='User Avatar']", timeout=120000)
+        await self.page.wait_for_selector("img.user_avatar", timeout=120000)
         await self._save_cookies()
         print("Login successful and cookies saved.")
 
@@ -72,29 +71,35 @@ class XHSPublisher:
         await self._load_cookies()
         await self.page.goto("https://creator.xiaohongshu.com")
         # Ensure we are logged in.
-        if not await self.page.query_selector("img[alt='User Avatar']"):
+        if not await self.page.wait_for_selector("img.user_avatar", timeout=10000):
+            print("not logged in")
             await self.login()
         print("login succeeded")
 
         # Click the button to create a new post.
-        await self.page.wait_for_selector("text=Create Post", timeout=10000)
-        await self.page.click("text=Create Post")
+        await self.page.wait_for_selector("text=发布笔记", timeout=10000)
+        await self.page.click("text=发布笔记")
+        await self.page.click("text=上传图文")
 
         # Upload images.
         for img_path in image_paths:
             # The file input is hidden; we use set_input_files.
             await self.page.set_input_files("input[type='file']", str(img_path))
             # Wait a short moment for the thumbnail to appear.
-            await self.page.wait_for_timeout(1000)
-
+            await self.page.wait_for_timeout(10000)
+        print("images uploaded")
         # Fill title and copy.
-        await self.page.fill("textarea[placeholder='Add a title']", title)
+        await self.page.fill("input.d-text", title)
         await self.page.fill("div[role='textbox']", copy)
+        print("title and copy filled")
 
         # Submit the post.
-        await self.page.click("text=Publish")
-        # Wait for confirmation.
-        await self.page.wait_for_selector("text=Published successfully", timeout=30000)
+        locator = self.page.locator("div.d-button-content")
+        await self.page.wait_for_timeout(3600*1000)
+        # filtered_locator = locator.filter(has_text="发布")
+        # await filtered_locator.click()
+        # # Wait for confirmation.
+        # await self.page.wait_for_selector("text=发布成功", timeout=30000)
         print("Post published.")
 
     async def close(self):
@@ -105,7 +110,7 @@ class XHSPublisher:
 def run_publish(image_paths: List[Path], title: str, copy: str, headless: bool = True):
     async def _run():
         publisher = XHSPublisher(headless=headless)
-        await publisher.login()
+        # await publisher.login()
         await publisher.publish(image_paths, title, copy)
         await publisher.close()
     asyncio.run(_run())
