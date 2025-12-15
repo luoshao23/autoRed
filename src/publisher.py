@@ -113,11 +113,11 @@ class XHSPublisher:
         await self.page.click("text=上传图文")
 
         # Upload images.
-        for img_path in image_paths:
-            # The file input is hidden; we use set_input_files.
-            await self.page.set_input_files("input[type='file']", str(img_path))
-            # Wait a short moment for the thumbnail to appear.
-            await self.page.wait_for_timeout(10000)
+        # pass all paths at once to set_input_files
+        await self.page.set_input_files("input[type='file']", [str(p) for p in image_paths])
+
+        # Wait a short moment for the thumbnail to appear.
+        await self.page.wait_for_timeout(10000)
         print("images uploaded")
         # Fill title and copy.
         await self.page.fill("input.d-text", title)

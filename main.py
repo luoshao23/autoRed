@@ -14,7 +14,7 @@ from datetime import datetime
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from src.llm_client import generate_image_prompt, generate_post_content, generate_content_element
+from src.llm_client import generate_image_prompt, generate_post_content, generate_content_element, generate_content_element_cloudflare
 from src.image_client import generate_images
 from src.publisher import run_publish
 from config.settings import SCHEDULE_TIME
@@ -23,7 +23,8 @@ from config.settings import SCHEDULE_TIME
 def job_v2(mode="prod"):
     print(f"[autoRed] Job started at {datetime.now()}")
     # 1. Prompt generation
-    content_element = generate_content_element()
+    # content_element = generate_content_element()
+    content_element = generate_content_element_cloudflare()
     # content_element = {}
     image_prompt = content_element.get("image_prompt", "")
     title = content_element.get("title", "title")
@@ -58,7 +59,7 @@ def job(mode="prod"):
     print("[autoRed] Job completed.")
 
 if __name__ == "__main__":
-    mode = os.getenv("MODE", "dev")
+    mode = os.getenv("MODE", "test")
     print(f"[autoRed] Mode: {mode}")
     if mode in ("test", "dev"):
         job_v2(mode)

@@ -33,7 +33,10 @@ def generate_images(prompt: str, count: int = 3, mode="test") -> List[Path]:
         raise ValueError("count must be between 1 and 6")
 
     if mode == "test":
-        return [Path(__file__).parent.parent / "output" / "images" / "generated.png"]
+        return [
+            Path(__file__).parent.parent / "output" / "images" / "generated.png",
+            Path(__file__).parent.parent / "output" / "images" / "generated1.png"
+        ]
 
     # client = genai.Client()
     client = InferenceClient(
