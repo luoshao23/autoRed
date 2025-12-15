@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List
 
 from playwright.async_api import async_playwright
-from playwright._impl._errors import TimeoutError # 导入TimeoutError
+from playwright.async_api import TimeoutError # 导入TimeoutError
 
 # Path to store cookies for persistent login
 COOKIES_PATH = Path(__file__).parent.parent / "cookies" / "xhs_cookies.json"
