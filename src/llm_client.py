@@ -165,39 +165,6 @@ def generate_post_content(image_context: str) -> dict:
     return {"title": title, "copy": copy}
 
 
-def generate_image_prompt_cloudflare():
-    """Generate image prompt using Cloudflare AI REST API."""
-    url = "https://api.cloudflare.com/client/v4/accounts/812985d5fdeac955ccfdb053fe794f93/ai/run/@cf/openai/gpt-oss-20b"
-    headers = {
-        "Authorization": "Bearer Rm8teOmGn-3p1Xdb08Ui3CJ7rJv4nExRJ4t_d-3e"
-    }
-    payload = {
-        "input": "Create a detailed, vivid description for a high-quality AI‑generated portrait of a beautiful woman. Include style, lighting, background, and any artistic details that would help an image model produce a striking result."
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        result = response.json()
-        # Cloudflare AI response format typically: {"result": {"response": "text"}, "success": true}
-        if result.get("success"):
-            # Parse the complex response structure
-            outputs = result.get("result", {}).get("output", [])
-            final_text = ""
-            for item in outputs:
-                if item.get("type") == "message" and item.get("role") == "assistant":
-                    for content in item.get("content", []):
-                        if content.get("type") == "output_text":
-                            final_text += content.get("text", "")
-            return final_text
-        else:
-            print(f"Cloudflare API error: {result.get('errors')}")
-            return None
-    except Exception as e:
-        print(f"Request failed: {e}")
-        return None
-
-
 def generate_content_element_cloudflare():
     """Generate content element (JSON) using Cloudflare AI REST API."""
     SYSTEM_PROMPT_FULL = """
